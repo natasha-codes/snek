@@ -1,5 +1,5 @@
-extern crate snek;
+mod snek;
 
 fn main() {
-    snek::foo();
+    snek::foo::foo();
 }
