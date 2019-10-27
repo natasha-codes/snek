@@ -1,16 +1,48 @@
 # snek
 
-## Game plan
+## Module organization
 
-- Draw a box the size of the terminal
-- Put a food dot in the box
-- Put a snake in the box
-- Animate the snake moving
-- Add user control to change the snake direction
-- Add collision detection of snake head with food
-- Grow snake upon collision detection of snake head with food
-- Add collision detection of snake with snake
-- End game upon collision detection of snake with snake
-- Compute and show points based on snake length
-- Show a timer of in-game time
-- On game end, show a fun screen with statistics
+### Main
+Entry point of the game.
+
+- Parses commands/option flags.
+- Creates and invokes a `Driver`.
+
+### Driver
+Run the animation/update/event loop.
+
+Owns: a `Terminal`, a `Game`.
+
+At each animation tick:
+- Updates its `Game`, accounting for user input from its `Terminal`.
+- Has its `Terminal` render a `UI` based on its `Game`.
+
+### Terminal
+Wraps interface between game and user.
+
+- Detects and reports user input.
+- Renders a `UI`.
+
+### UI
+Wraps a `Game`, turning it into a `Terminal`-renderable format.
+
+### Game
+Maintains and updates game state.
+
+Owns: a `Snake`, `Food`.
+
+- Tracks `Snake`, `Food` in bounded 2D space.
+- Updates in response to animation ticks, input events.
+- Detects and reports game events, such as collisions.
+
+#### Snake
+Represents a snake object.
+
+#### Food
+Represents a food object.
+
+## Questions/enhancements
+- Snake can wrap around edges?
+- Food can have multiple colors for multiple values?
+- Multiple foods?
+- Multiple snakes?
