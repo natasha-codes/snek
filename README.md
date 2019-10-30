@@ -56,3 +56,4 @@ Represents a food object.
 - Multiple foods?
 - Multiple snakes?
 - Customize food/snake sprites with flags
+- Networked play
