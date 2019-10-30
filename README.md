@@ -55,4 +55,4 @@ Represents a food object.
 - Food can have multiple colors for multiple values?
 - Multiple foods?
 - Multiple snakes?
-
+- customize food/snake sprites with flags
