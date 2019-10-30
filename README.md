@@ -55,5 +55,5 @@ Represents a food object.
 - Food can have multiple colors for multiple values?
 - Multiple foods?
 - Multiple snakes?
-- Customize food/snake sprites with flags
-- Networked play
+- Customize food/snake sprites with flags?
+- Networked play?
