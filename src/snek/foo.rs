@@ -1,14 +1,15 @@
 use tui;
 
-pub fn foo() {
-  println!("Hello world!");
+pub fn foo() -> i32 {
+  2 + 2
 }
+
 #[cfg(test)]
 mod tests {
   use super::*;
+
   #[test]
-  fn panic() {
-    foo();
-    panic!();
+  fn dummy() {
+    assert_eq!(foo(), 4)
   }
 }
