@@ -1,5 +1,3 @@
-use tui;
-
 pub fn foo() -> i32 {
   2 + 2
 }
