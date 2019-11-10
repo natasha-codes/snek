@@ -1,1 +1,2 @@
-echo dongle
+cargo fmt
+cargo clippy
