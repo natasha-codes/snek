@@ -9,7 +9,5 @@ jobs:
       - uses: actions/checkout@v1
       - name: Format
         run: cargo fmt
-    steps:
-      - uses: action/checkout@v1
       - name: Lint
         run: cargo clippy
