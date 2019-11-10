@@ -6,10 +6,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Format
-      run: cargo fmt
+      - uses: actions/checkout@v1
+      - name: Format
+        run: cargo fmt
     steps:
-    - uses: action/checkout@v1
-    - name: Lint
-      run: cargo clippy
+      - uses: action/checkout@v1
+      - name: Lint
+        run: cargo clippy
