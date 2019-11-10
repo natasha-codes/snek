@@ -1,0 +1,15 @@
+name: Style
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Format
+      run: cargo fmt
+    steps:
+    - uses: action/checkout@v1
+    - name: Lint
+      run: cargo clippy
