@@ -8,6 +8,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Format
-        run: cargo fmt
+        run: cargo fmt -- --check
       - name: Lint
         run: cargo clippy
