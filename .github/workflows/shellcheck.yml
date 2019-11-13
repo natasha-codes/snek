@@ -8,10 +8,4 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Shellcheck
-        working-directory: ./bin
-        run: ./shellcheck.sh
-      - name: Test
-        working-directory: ./
-        run: ls && pwd
-      - name: Test II
-        run: ls && pwd
+        run: ./bin/shellcheck.sh
