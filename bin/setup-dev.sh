@@ -8,3 +8,6 @@ popd || exit
 
 # Install [clippy](https://github.com/rust-lang/rust-clippy)
 rustup component add clippy
+
+# [shellcheck](https://github.com/koalaman/shellcheck)
+brew install shellcheck
