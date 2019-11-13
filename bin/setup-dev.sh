@@ -1,7 +1,8 @@
 #! /usr/bin/env bash
 
 # Symlink pre-commit hooks
-pushd ../.git/hooks || exit
+root=$(git rev-parse --show-toplevel)
+pushd "$root/.git/hooks" || exit
 ln -s ../../.githooks/pre-commit pre-commit
 popd || exit
 
