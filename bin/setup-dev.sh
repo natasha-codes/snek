@@ -1,10 +1,12 @@
 #! /usr/bin/env bash
 
+set -euo pipefail
+
 # Symlink pre-commit hooks
 root=$(git rev-parse --show-toplevel)
-pushd "$root/.git/hooks" || exit
+pushd "$root/.git/hooks"
 ln -s ../../.githooks/pre-commit pre-commit
-popd || exit
+popd
 
 # Install [clippy](https://github.com/rust-lang/rust-clippy)
 rustup component add clippy
