@@ -3,7 +3,7 @@
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
-pushd "$root"
+cd "$root"
 
 {
   # `.sh` extension
