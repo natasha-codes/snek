@@ -1,0 +1,11 @@
+name: Shellcheck
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Shellcheck
+        run: ./bin/shellcheck.sh
