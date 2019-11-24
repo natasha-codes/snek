@@ -1,14 +1,20 @@
+use crate::snek::terminal::Terminal;
+
 #[derive(Debug, Copy, Clone)]
-pub struct Driver {}
+pub struct Driver {
+  term: Terminal,
+}
 
 #[allow(dead_code)] // TODO: remove
 impl Driver {
   pub fn new() -> Self {
-    Driver {}
+    Driver {
+      term: Terminal::new(),
+    }
   }
 
-  fn foo(self) -> bool {
-    true
+  pub fn drive(self) -> bool {
+    self.term.foo()
   }
 }
 
@@ -17,7 +23,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn drive() {
-    assert!(Driver::new().foo());
+  fn test_drive() {
+    assert!(Driver::new().drive());
   }
 }
