@@ -7,7 +7,7 @@ impl Driver {
     Driver {}
   }
 
-  fn foo(&self) -> bool {
+  fn foo(self) -> bool {
     true
   }
 }
