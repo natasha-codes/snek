@@ -1,4 +1,9 @@
+#![allow(dead_code)] // TODO: remove once skeleton is assembled
+
 extern crate tui;
 
 pub mod driver;
-pub mod terminal;
+mod food;
+mod game;
+mod snake;
+mod terminal;

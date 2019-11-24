@@ -1,19 +1,25 @@
+use crate::snek::game::Game;
 use crate::snek::terminal::Terminal;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Driver {
   term: Terminal,
+  game: Game,
 }
 
-#[allow(dead_code)] // TODO: remove
 impl Driver {
   pub fn new() -> Self {
     Driver {
       term: Terminal::new(),
+      game: Game::new(),
     }
   }
 
-  pub fn drive(self) {
-    println!("{}", self.term.render());
+  pub fn drive(&self) {
+    println!(
+      "snek: {}, foods: {}",
+      self.term.render(),
+      self.game.count_food()
+    );
   }
 }
