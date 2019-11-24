@@ -13,17 +13,7 @@ impl Driver {
     }
   }
 
-  pub fn drive(self) -> bool {
-    self.term.foo()
-  }
-}
-
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn test_drive() {
-    assert!(Driver::new().drive());
+  pub fn drive(self) {
+    println!("{}", self.term.render());
   }
 }

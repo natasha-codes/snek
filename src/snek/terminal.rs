@@ -7,8 +7,8 @@ impl Terminal {
     Terminal {}
   }
 
-  pub fn foo(self) -> bool {
-    true
+  pub fn render(&self) -> &str {
+    "🐍"
   }
 }
 
@@ -17,7 +17,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn drive() {
-    assert!(Terminal::new().foo());
+  fn test_render() {
+    assert_eq!(Terminal::new().render(), "🐍");
   }
 }
