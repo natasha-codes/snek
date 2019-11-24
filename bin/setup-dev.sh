@@ -8,8 +8,9 @@ pushd "$root/.git/hooks"
 ln -s ../../.githooks/pre-commit pre-commit
 popd
 
-# Install [clippy](https://github.com/rust-lang/rust-clippy)
-rustup component add clippy
+# Install [clippy](https://github.com/rust-lang/rust-clippy), which only works on nightly
+rustup toolchain add nightly
+rustup component add clippy --toolchain nightly
 
 # [shellcheck](https://github.com/koalaman/shellcheck)
 brew install shellcheck
