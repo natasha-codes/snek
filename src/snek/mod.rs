@@ -8,3 +8,4 @@ mod food;
 mod game;
 mod snake;
 mod terminal;
+mod ui;
