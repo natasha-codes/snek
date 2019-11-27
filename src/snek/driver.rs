@@ -18,7 +18,7 @@ impl Driver {
   pub fn drive(&self) {
     println!(
       "snek: {}, foods: {}",
-      self.term.render(),
+      self.term.render(&self.game),
       self.game.count_food()
     );
   }
