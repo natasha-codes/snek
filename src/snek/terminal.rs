@@ -1,21 +1,26 @@
+use std::io::Write;
+
 pub(crate) trait TerminalRenderable {
   fn as_string(&self) -> String;
 }
 
-#[derive(Debug, Copy, Clone)]
-pub(crate) struct Terminal {}
+#[derive(Debug)]
+pub(crate) struct Terminal {
+  out_stream: std::io::Stdout,
+}
 
 impl Terminal {
   pub fn new() -> Self {
-    Terminal {}
+    Terminal {
+      out_stream: std::io::stdout(),
+    }
   }
 
   pub fn render<Renderable: TerminalRenderable>(
-    &self,
+    &mut self,
     renderable: &Renderable,
-  ) -> bool {
-    println!("{}", renderable.as_string());
-    true
+  ) -> Result<(), std::io::Error> {
+    writeln!(&mut self.out_stream, "{}", renderable.as_string())
   }
 }
 
@@ -32,6 +37,6 @@ mod tests {
 
   #[test]
   fn test_render() {
-    assert_eq!(Terminal::new().render(&TestRenderable {}), true);
+    assert!(Terminal::new().render(&TestRenderable {}).is_ok());
   }
 }

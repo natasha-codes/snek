@@ -1,7 +1,7 @@
 use crate::snek::game::Game;
 use crate::snek::terminal::Terminal;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Driver {
   term: Terminal,
   game: Game,
@@ -15,11 +15,10 @@ impl Driver {
     }
   }
 
-  pub fn drive(&self) {
-    println!(
-      "snek: {}, foods: {}",
-      self.term.render(&self.game),
-      self.game.count_food()
-    );
+  pub fn drive(&mut self) {
+    match self.term.render(&mut self.game) {
+      Ok(_) => {}
+      Err(err) => println!("{}", err),
+    }
   }
 }

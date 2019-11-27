@@ -1,7 +1,6 @@
 use crate::snek::food::Food;
 use crate::snek::snake::Snake;
 use crate::snek::terminal::TerminalRenderable;
-use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Game {
@@ -24,7 +23,7 @@ impl Game {
 
 impl TerminalRenderable for Game {
   fn as_string(&self) -> String {
-    String::from_str("🐍").expect("Failed to parse snek emoji")
+    format!("Food: {}", self.food.len())
   }
 }
 
