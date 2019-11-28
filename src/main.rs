@@ -1,5 +1,7 @@
 mod snek;
 
 fn main() {
-  snek::foo::foo();
+  let mut d = snek::driver::Driver::new();
+
+  d.drive();
 }
