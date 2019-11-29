@@ -5,7 +5,7 @@ pub(crate) struct Snake {
 
 impl Snake {
   pub fn new() -> Self {
-    Snake { length: 12 }
+    Snake { length: 1 }
   }
 
   pub fn length(&self) -> usize {
@@ -19,6 +19,6 @@ mod tests {
 
   #[test]
   fn test_new_snake() {
-    assert_eq!(Snake::new().length(), 12);
+    assert_eq!(Snake::new().length(), 1);
   }
 }
