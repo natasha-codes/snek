@@ -13,4 +13,4 @@ rustup toolchain add nightly
 rustup component add clippy --toolchain nightly
 
 # [shellcheck](https://github.com/koalaman/shellcheck)
-brew install shellcheck
+command -v shellcheck > /dev/null || brew install shellcheck
