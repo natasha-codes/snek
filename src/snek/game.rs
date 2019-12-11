@@ -18,6 +18,10 @@ impl Game {
   pub fn count_food(&self) -> usize {
     self.food.len()
   }
+
+  pub fn snake_length(&self) -> usize {
+    self.snek.length()
+  }
 }
 
 #[cfg(test)]
@@ -26,6 +30,9 @@ mod tests {
 
   #[test]
   fn test_new_game() {
-    assert_eq!(Game::new().count_food(), 3);
+    let game = Game::new();
+
+    assert_eq!(game.count_food(), 3);
+    assert_eq!(game.snake_length(), 1);
   }
 }
