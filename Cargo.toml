@@ -5,4 +5,5 @@ authors = ["sashaweiss <asashaweiss@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-tui = "0.6.2"
+tui = "0.8"
+termion = "1.5"

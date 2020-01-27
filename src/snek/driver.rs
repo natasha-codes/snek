@@ -1,8 +1,6 @@
 use crate::snek::game::Game;
 use crate::snek::terminal::Terminal;
-use crate::snek::ui::UI;
 
-#[derive(Debug)]
 pub struct Driver {
   term: Terminal,
 }
@@ -17,9 +15,9 @@ impl Driver {
   pub fn drive(&mut self) {
     let g = Game::new();
 
-    match &mut self.term.render(&UI::from(&g)) {
+    match &mut self.term.render(&g) {
       Ok(_) => {}
-      Err(err) => println!("{}", err),
+      _ => println!("fuck"),
     }
   }
 }

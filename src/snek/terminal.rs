@@ -1,42 +1,30 @@
-use std::io::Write;
+use crate::snek::game::Game;
+use termion::raw::{IntoRawMode, RawTerminal};
+use tui::backend::TermionBackend;
+use tui::widgets::{Block, Borders};
+use tui::Terminal as TuiTerminal;
 
-pub(crate) trait TerminalRenderable {
-  fn as_string(&self) -> String;
-}
-
-#[derive(Debug)]
 pub(crate) struct Terminal {
-  out_stream: std::io::Stdout,
+  terminal: TuiTerminal<TermionBackend<RawTerminal<std::io::Stdout>>>,
 }
 
 impl Terminal {
   pub fn new() -> Self {
-    Terminal {
-      out_stream: std::io::stdout(),
-    }
+    let raw_stdout = std::io::stdout().into_raw_mode().unwrap();
+    let backend = TermionBackend::new(raw_stdout);
+    let terminal = TuiTerminal::new(backend).unwrap();
+    Terminal { terminal }
   }
 
-  pub fn render<Renderable: TerminalRenderable>(
-    &mut self,
-    renderable: &Renderable,
-  ) -> Result<(), std::io::Error> {
-    writeln!(&mut self.out_stream, "{}", renderable.as_string())
-  }
-}
+  pub fn render(&mut self, game: &Game) -> Result<(), ()> {
+    self
+      .terminal
+      .draw(|mut f| {
+        let mut block = Block::default().title("Block").borders(Borders::ALL);
+        f.render(&mut block, f.size());
+      })
+      .unwrap();
 
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  struct TestRenderable {}
-  impl TerminalRenderable for TestRenderable {
-    fn as_string(&self) -> String {
-      String::from("this is a test")
-    }
-  }
-
-  #[test]
-  fn test_render() {
-    assert!(Terminal::new().render(&TestRenderable {}).is_ok());
+    Ok(())
   }
 }
