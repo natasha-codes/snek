@@ -10,4 +10,4 @@ jobs:
       - name: Format
         run: cargo fmt --verbose -- --check
       - name: Lint
-        run: cargo clippy -- -D warnings
+        run: cargo clippy
