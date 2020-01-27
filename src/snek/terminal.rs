@@ -1,17 +1,20 @@
 use crate::snek::game::Game;
 use termion::raw::{IntoRawMode, RawTerminal};
+use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::widgets::{Block, Borders};
 use tui::Terminal as TuiTerminal;
 
 pub(crate) struct Terminal {
-  terminal: TuiTerminal<TermionBackend<RawTerminal<std::io::Stdout>>>,
+  terminal:
+    TuiTerminal<TermionBackend<AlternateScreen<RawTerminal<std::io::Stdout>>>>,
 }
 
 impl Terminal {
   pub fn new() -> Self {
     let raw_stdout = std::io::stdout().into_raw_mode().unwrap();
-    let backend = TermionBackend::new(raw_stdout);
+    let stdout = AlternateScreen::from(raw_stdout);
+    let backend = TermionBackend::new(stdout);
     let terminal = TuiTerminal::new(backend).unwrap();
     Terminal { terminal }
   }
