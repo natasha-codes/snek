@@ -1,5 +1,6 @@
 use crate::snek::food::Food;
 use crate::snek::snake::Snake;
+use rand::Rng;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) struct GameDimensions {
@@ -8,23 +9,43 @@ pub(crate) struct GameDimensions {
 }
 
 #[derive(Debug, Clone)]
+pub(crate) struct GameCoordinate {
+  pub x: u16,
+  pub y: u16,
+}
+
+impl GameCoordinate {
+  pub fn random(GameDimensions { width, height }: GameDimensions) -> Self {
+    let mut rng = rand::thread_rng();
+    GameCoordinate {
+      x: rng.gen_range(0, width),
+      y: rng.gen_range(0, height),
+    }
+  }
+}
+
+#[derive(Debug, Clone)]
 pub(crate) struct Game {
   dimensions: GameDimensions,
   snek: Snake,
-  food: Vec<Food>,
+  food: Vec<(Food, GameCoordinate)>,
 }
 
 impl Game {
   pub fn new(dimensions: GameDimensions) -> Self {
+    let food = vec![Food::Cake, Food::Cherry, Food::Mouse]
+      .into_iter()
+      .map(|food| (food, GameCoordinate::random(dimensions)))
+      .collect();
     Game {
       dimensions,
       snek: Snake::new(),
-      food: vec![Food::Cake, Food::Cherry, Food::Mouse],
+      food,
     }
   }
 
-  pub fn count_food(&self) -> usize {
-    self.food.len()
+  pub fn food(&self) -> &Vec<(Food, GameCoordinate)> {
+    &self.food
   }
 
   pub fn snake_length(&self) -> usize {
@@ -47,7 +68,7 @@ mod tests {
 
     let game = Game::new(GameDimensions { width, height });
 
-    assert_eq!(game.count_food(), 3);
+    assert_eq!(game.food().len(), 3);
     assert_eq!(game.snake_length(), 1);
     assert_eq!(game.dimensions(), GameDimensions { width, height });
   }
