@@ -1,7 +1,8 @@
-use crate::snek::game::Game;
+use crate::snek::game::{Game, GameDimensions};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
+use tui::layout::Rect;
 use tui::widgets::{Block, Borders};
 use tui::Terminal as TuiTerminal;
 
@@ -23,11 +24,17 @@ impl Terminal {
     self
       .terminal
       .draw(|mut f| {
-        let mut block = Block::default().title("Block").borders(Borders::ALL);
+        let mut block = Block::default().borders(Borders::ALL);
         f.render(&mut block, f.size());
       })
       .unwrap();
 
     Ok(())
+  }
+
+  pub fn size(&self) -> GameDimensions {
+    // TODO: actually handle this
+    let Rect { width, height, .. } = self.terminal.size().unwrap();
+    GameDimensions { width, height }
   }
 }
