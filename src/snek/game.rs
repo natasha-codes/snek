@@ -8,7 +8,7 @@ pub(crate) struct GameDimensions {
   pub height: u16,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub(crate) struct GameCoordinate {
   pub x: u16,
   pub y: u16,
@@ -52,7 +52,7 @@ impl Game {
     self.snek.length()
   }
 
-  fn dimensions(&self) -> GameDimensions {
+  pub fn dimensions(&self) -> GameDimensions {
     self.dimensions
   }
 }
