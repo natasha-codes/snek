@@ -24,7 +24,7 @@ impl Terminal {
     self
       .terminal
       .draw(|mut f| {
-        let mut block = Block::default();
+        let mut block = Block::default().borders(Borders::ALL);
         f.render(&mut block, f.size());
 
         let sprite = [Text::raw("a")];
