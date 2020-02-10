@@ -16,7 +16,7 @@ impl Driver {
   }
 
   pub fn drive(&mut self) {
-    let g = Game::new();
+    let g = Game::new(self.term.game_space());
 
     match &mut self.term.render(&g) {
       Ok(_) => {}
