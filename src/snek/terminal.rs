@@ -126,8 +126,7 @@ impl Into<CharWidget> for SnakeDirection {
   }
 }
 
-// The snake head is represented by a `GameCoordinate` - this impl
-// refers to that usage.
+// The snake head is represented by a `GameCoordinate` - this impl refers to that usage.
 impl Into<CharWidget> for GameCoordinate {
   fn into(self) -> CharWidget {
     '⦾'.into()
