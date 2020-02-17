@@ -167,12 +167,3 @@ impl GameDimensions {
     self.width <= rhs.width && self.height <= rhs.height
   }
 }
-
-impl GameCoordinate {
-  fn adjusted(self, TerminalOffset { x, y }: TerminalOffset) -> Self {
-    GameCoordinate {
-      x: self.x + x,
-      y: self.y + y,
-    }
-  }
-}
