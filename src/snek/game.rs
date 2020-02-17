@@ -8,29 +8,10 @@ pub(crate) struct GameDimensions {
   pub height: u16,
 }
 
-impl GameDimensions {
-  fn center(&self) -> GameCoordinate {
-    GameCoordinate {
-      x: self.width / 2,
-      y: self.height / 2,
-    }
-  }
-}
-
 #[derive(Debug, Copy, Clone)]
 pub(crate) struct GameCoordinate {
   pub x: u16,
   pub y: u16,
-}
-
-impl GameCoordinate {
-  pub fn random(GameDimensions { width, height }: GameDimensions) -> Self {
-    let mut rng = rand::thread_rng();
-    GameCoordinate {
-      x: rng.gen_range(0, width),
-      y: rng.gen_range(0, height),
-    }
-  }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -73,6 +54,8 @@ impl Game {
     }
   }
 
+  // MARK: - Getters
+
   pub fn dimensions(&self) -> GameDimensions {
     self.dimensions
   }
@@ -94,13 +77,38 @@ impl Game {
       self
         .snek
         .iter()
-        .map(move |dir| (dir, curr.updated_with_direction(dir))),
+        .map(move |dir| (dir, curr.update_with_direction(dir))),
     )
+  }
+
+  // MARK: - Actions
+
+  pub fn advance(&mut self) -> Result<(), ()> {
+    // advance the snake
+
+    Ok(())
+  }
+}
+
+impl GameDimensions {
+  fn center(&self) -> GameCoordinate {
+    GameCoordinate {
+      x: self.width / 2,
+      y: self.height / 2,
+    }
   }
 }
 
 impl GameCoordinate {
-  fn updated_with_direction(&mut self, direction: SnakeDirection) -> Self {
+  fn random(GameDimensions { width, height }: GameDimensions) -> Self {
+    let mut rng = rand::thread_rng();
+    GameCoordinate {
+      x: rng.gen_range(0, width),
+      y: rng.gen_range(0, height),
+    }
+  }
+
+  fn update_with_direction(&mut self, direction: SnakeDirection) -> Self {
     use SnakeDirection::*;
     match direction {
       North => self.y += 1,
