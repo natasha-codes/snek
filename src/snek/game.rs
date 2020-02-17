@@ -54,8 +54,6 @@ impl Game {
     }
   }
 
-  // MARK: - Getters
-
   pub fn dimensions(&self) -> GameDimensions {
     self.dimensions
   }
@@ -79,14 +77,6 @@ impl Game {
         .iter()
         .map(move |dir| (dir, curr.update_with_direction(dir))),
     )
-  }
-
-  // MARK: - Actions
-
-  pub fn advance(&mut self) -> Result<(), ()> {
-    // advance the snake
-
-    Ok(())
   }
 }
 
