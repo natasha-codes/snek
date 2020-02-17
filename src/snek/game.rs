@@ -70,7 +70,7 @@ impl Game {
   }
 
   pub fn food(&self) -> impl Iterator<Item = (Food, GameCoordinate)> + '_ {
-    self.food.iter().map(|tup| *tup)
+    self.food.iter().copied()
   }
 
   pub fn snake_bits(

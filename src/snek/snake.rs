@@ -23,7 +23,7 @@ impl Snake {
   }
 
   pub fn iter(&self) -> impl Iterator<Item = SnakeDirection> + '_ {
-    self.segments.iter().map(|dir| *dir)
+    self.segments.iter().copied()
   }
 
   pub fn advance(&mut self, direction: SnakeDirection) {
