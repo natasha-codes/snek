@@ -1,12 +1,13 @@
 use crate::snek::food::Food;
 use crate::snek::game::{Game, GameCoordinate, GameDimensions};
+use crate::snek::snake::SnakeDirection;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
+use tui::terminal::{Frame, Terminal as TuiTerminal};
 use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
-use tui::Terminal as TuiTerminal;
 
 #[derive(Debug, Clone, Copy)]
 struct TerminalOffset {
@@ -14,9 +15,10 @@ struct TerminalOffset {
   y: u16,
 }
 
+type OurBackend = TermionBackend<AlternateScreen<RawTerminal<std::io::Stdout>>>;
+
 pub(crate) struct Terminal {
-  terminal:
-    TuiTerminal<TermionBackend<AlternateScreen<RawTerminal<std::io::Stdout>>>>,
+  terminal: TuiTerminal<OurBackend>,
   game_space_offset: TerminalOffset,
 }
 
@@ -34,12 +36,16 @@ impl Terminal {
 
   pub fn render(&mut self, game: &Game) -> Result<(), ()> {
     let game_space_offset = self.game_space_offset;
+    let adjust = |GameCoordinate { x, y }: GameCoordinate| -> GameCoordinate {
+      GameCoordinate {
+        x: x + game_space_offset.x,
+        y: y + game_space_offset.y,
+      }
+    };
 
     self
       .terminal
       .draw(|mut f| {
-        eprintln!("{:?}, {:?}", game.dimensions(), f.size().border_adjusted());
-
         assert!(
           game.dimensions().fits_in(&f.size().border_adjusted()),
           "Terminal was larger than game - did the terminal screen resize?"
@@ -48,16 +54,15 @@ impl Terminal {
         let mut block = Block::default().borders(Borders::ALL);
         f.render(&mut block, f.size());
 
-        for (mut food, GameCoordinate { x, y }) in game.food() {
-          f.render(
-            &mut food,
-            Rect {
-              width: 1,
-              height: 1,
-              x: game_space_offset.x + *x,
-              y: game_space_offset.y + *y,
-            },
-          );
+        for (food, coordinate) in game.food() {
+          f.render_char_widget(food, adjust(coordinate));
+        }
+
+        let (head, body) = game.snake_bits();
+
+        f.render_char_widget(head, adjust(head));
+        for (direction, coordinate) in body {
+          f.render_char_widget(direction, adjust(coordinate));
         }
       })
       .unwrap();
@@ -68,25 +73,90 @@ impl Terminal {
   pub fn game_space(&self) -> GameDimensions {
     self.terminal.size().map(|r| r.border_adjusted()).unwrap()
   }
+
+  fn adjusted_coordinate(
+    &self,
+    GameCoordinate { x, y }: GameCoordinate,
+  ) -> GameCoordinate {
+    GameCoordinate {
+      x: self.game_space_offset.x + x,
+      y: self.game_space_offset.y + y,
+    }
+  }
 }
 
-impl Food {
-  fn repr(&self) -> char {
+// MARK: - Sprite rendering
+
+struct CharWidget(char);
+
+impl Widget for CharWidget {
+  fn draw(&mut self, area: Rect, buf: &mut Buffer) {
+    let sprite = [Text::raw(self.0.to_string())];
+
+    Paragraph::new(sprite.iter()).draw(area, buf);
+  }
+}
+
+impl From<char> for CharWidget {
+  fn from(c: char) -> Self {
+    Self(c)
+  }
+}
+
+impl Into<CharWidget> for Food {
+  fn into(self) -> CharWidget {
     match self {
       Food::Cake => 'c',
       Food::Cherry => 'y',
       Food::Mouse => 'm',
     }
+    .into()
   }
 }
 
-impl Widget for Food {
-  fn draw(&mut self, area: Rect, buf: &mut Buffer) {
-    let sprite = [Text::raw(self.repr().to_string())];
-
-    Paragraph::new(sprite.iter()).draw(area, buf);
+impl Into<CharWidget> for SnakeDirection {
+  fn into(self) -> CharWidget {
+    match self {
+      SnakeDirection::North => '^',
+      SnakeDirection::South => 'v',
+      SnakeDirection::East => '>',
+      SnakeDirection::West => '<',
+    }
+    .into()
   }
 }
+
+// The snake head is represented by a `GameCoordinate` - this impl
+// refers to that usage.
+impl Into<CharWidget> for GameCoordinate {
+  fn into(self) -> CharWidget {
+    '⦾'.into()
+  }
+}
+
+trait CharWidgetRenderer<I: Into<CharWidget>> {
+  fn render_char_widget(&mut self, widget: I, at: GameCoordinate);
+}
+
+impl<'a, I: Into<CharWidget>> CharWidgetRenderer<I> for Frame<'a, OurBackend> {
+  fn render_char_widget(
+    &mut self,
+    widget: I,
+    GameCoordinate { x, y }: GameCoordinate,
+  ) {
+    self.render::<CharWidget>(
+      &mut widget.into(),
+      Rect {
+        width: 1,
+        height: 1,
+        x,
+        y,
+      },
+    )
+  }
+}
+
+// MARK: - Mapping terminal -> game space
 
 trait BorderAdjustable {
   fn border_adjusted(&self) -> GameDimensions;
@@ -104,5 +174,14 @@ impl BorderAdjustable for Rect {
 impl GameDimensions {
   fn fits_in(&self, rhs: &Self) -> bool {
     self.width <= rhs.width && self.height <= rhs.height
+  }
+}
+
+impl GameCoordinate {
+  fn adjusted(self, TerminalOffset { x, y }: TerminalOffset) -> Self {
+    GameCoordinate {
+      x: self.x + x,
+      y: self.y + y,
+    }
   }
 }

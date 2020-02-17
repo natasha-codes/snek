@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::vec_deque::VecDeque;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub(crate) enum SnakeDirection {
@@ -22,8 +22,8 @@ impl Snake {
     }
   }
 
-  pub fn length(&self) -> usize {
-    self.segments.len() + 1
+  pub fn iter(&self) -> impl Iterator<Item = SnakeDirection> + '_ {
+    self.segments.iter().map(|dir| *dir)
   }
 
   pub fn advance(&mut self, direction: SnakeDirection) {
@@ -54,6 +54,10 @@ mod tests {
       }
 
       snek
+    }
+
+    fn length(&self) -> usize {
+      self.segments.len() + 1
     }
   }
 
