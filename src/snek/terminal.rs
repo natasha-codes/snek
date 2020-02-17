@@ -1,6 +1,7 @@
 use crate::snek::food::Food;
 use crate::snek::game::{Game, GameCoordinate, GameDimensions};
 use crate::snek::snake::SnakeDirection;
+use termion::cursor::HideCursor;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
@@ -15,7 +16,8 @@ struct TerminalOffset {
   y: u16,
 }
 
-type OurBackend = TermionBackend<AlternateScreen<RawTerminal<std::io::Stdout>>>;
+type OurBackend =
+  TermionBackend<HideCursor<AlternateScreen<RawTerminal<std::io::Stdout>>>>;
 
 pub(crate) struct Terminal {
   terminal: TuiTerminal<OurBackend>,
@@ -25,7 +27,7 @@ pub(crate) struct Terminal {
 impl Terminal {
   pub fn new() -> Self {
     let raw_stdout = std::io::stdout().into_raw_mode().unwrap();
-    let stdout = AlternateScreen::from(raw_stdout);
+    let stdout = HideCursor::from(AlternateScreen::from(raw_stdout));
     let backend = TermionBackend::new(stdout);
     let terminal = TuiTerminal::new(backend).unwrap();
     Terminal {
