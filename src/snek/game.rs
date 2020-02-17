@@ -54,9 +54,17 @@ impl Game {
       .map(|food| (food, GameCoordinate::random(dimensions)))
       .collect();
 
+    let mut snake = Snake::new();
+    snake.grow(SnakeDirection::North);
+    snake.grow(SnakeDirection::North);
+    snake.grow(SnakeDirection::North);
+    snake.grow(SnakeDirection::East);
+    snake.grow(SnakeDirection::East);
+    snake.grow(SnakeDirection::East);
+
     Game {
       dimensions,
-      snek: Snake::new(),
+      snek: snake,
       snek_head: SnakeHead {
         location: dimensions.center(),
         direction: SnakeDirection::North,
@@ -79,7 +87,7 @@ impl Game {
     GameCoordinate,
     impl Iterator<Item = (SnakeDirection, GameCoordinate)> + '_,
   ) {
-    let curr = self.snek_head.location;
+    let mut curr = self.snek_head.location;
 
     (
       self.snek_head.location,
@@ -92,7 +100,7 @@ impl Game {
 }
 
 impl GameCoordinate {
-  fn updated_with_direction(mut self, direction: SnakeDirection) -> Self {
+  fn updated_with_direction(&mut self, direction: SnakeDirection) -> Self {
     use SnakeDirection::*;
     match direction {
       North => self.y += 1,
@@ -101,7 +109,7 @@ impl GameCoordinate {
       West => self.x -= 1,
     };
 
-    self
+    *self
   }
 }
 
