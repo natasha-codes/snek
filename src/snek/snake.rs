@@ -1,4 +1,4 @@
-use std::collections::vec_deque::VecDeque;
+use std::collections::VecDeque;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub(crate) enum SnakeDirection {
