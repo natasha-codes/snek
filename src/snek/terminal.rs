@@ -1,6 +1,7 @@
 use crate::snek::food::Food;
 use crate::snek::game::{Game, GameCoordinate, GameDimensions};
 use crate::snek::snake::SnakeDirection;
+use std::io;
 use termion::cursor::HideCursor;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::screen::AlternateScreen;
@@ -36,7 +37,7 @@ impl Terminal {
     }
   }
 
-  pub fn render(&mut self, game: &Game) -> Result<(), ()> {
+  pub fn render(&mut self, game: &Game) -> io::Result<()> {
     let game_space_offset = self.game_space_offset;
     let adjust = |GameCoordinate { x, y }: GameCoordinate| -> GameCoordinate {
       GameCoordinate {
@@ -45,29 +46,26 @@ impl Terminal {
       }
     };
 
-    self
-      .terminal
-      .draw(|mut f| {
-        assert!(
-          game.dimensions().fits_in(&f.size().border_adjusted()),
-          "Terminal was larger than game - did the terminal screen resize?"
-        );
+    self.terminal.draw(|mut f| {
+      assert!(
+        game.dimensions().fits_in(&f.size().border_adjusted()),
+        "Terminal was larger than game - did the terminal screen resize?"
+      );
 
-        let mut block = Block::default().borders(Borders::ALL);
-        f.render(&mut block, f.size());
+      let mut block = Block::default().borders(Borders::ALL);
+      f.render(&mut block, f.size());
 
-        for (food, coordinate) in game.food() {
-          f.render_char_widget(food, adjust(coordinate));
-        }
+      for (food, coordinate) in game.food() {
+        f.render_char_widget(food, adjust(coordinate));
+      }
 
-        let (head, body) = game.snake_bits();
+      let (head, body) = game.snake_bits();
 
-        f.render_char_widget(head, adjust(head));
-        for (direction, coordinate) in body {
-          f.render_char_widget(direction, adjust(coordinate));
-        }
-      })
-      .unwrap();
+      f.render_char_widget(head, adjust(head));
+      for (direction, coordinate) in body {
+        f.render_char_widget(direction, adjust(coordinate));
+      }
+    })?;
 
     Ok(())
   }

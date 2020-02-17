@@ -1,6 +1,8 @@
+use crate::snek::driver::UserAction;
 use crate::snek::food::Food;
 use crate::snek::snake::{Snake, SnakeDirection};
 use rand::Rng;
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) struct GameDimensions {
@@ -54,6 +56,8 @@ impl Game {
     }
   }
 
+  // MARK: - Getters
+
   pub fn dimensions(&self) -> GameDimensions {
     self.dimensions
   }
@@ -77,6 +81,40 @@ impl Game {
         .iter()
         .map(move |dir| (dir, curr.update_with_direction(dir))),
     )
+  }
+
+  // MARK: - Actions
+
+  pub fn update_for_user_action(&mut self, user_action: UserAction) {
+    match user_action {
+      UserAction::MoveNorth
+      | UserAction::MoveSouth
+      | UserAction::MoveEast
+      | UserAction::MoveWest => {
+        let new_snake_direction = SnakeDirection::try_from(user_action)
+          .expect("Failed to create SnakeDirection from UserAction");
+
+        if self.snek_head.direction != new_snake_direction.inverted() {
+          self.snek.advance(new_snake_direction);
+          self.snek_head.direction = new_snake_direction;
+        }
+      }
+      UserAction::Quit | UserAction::PauseResume | UserAction::None => {}
+    };
+  }
+}
+
+impl TryFrom<UserAction> for SnakeDirection {
+  type Error = ();
+
+  fn try_from(user_action: UserAction) -> Result<Self, Self::Error> {
+    match user_action {
+      UserAction::MoveNorth => Ok(SnakeDirection::North),
+      UserAction::MoveSouth => Ok(SnakeDirection::South),
+      UserAction::MoveEast => Ok(SnakeDirection::East),
+      UserAction::MoveWest => Ok(SnakeDirection::West),
+      _ => Err(()),
+    }
   }
 }
 
