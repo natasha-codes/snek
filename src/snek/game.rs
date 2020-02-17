@@ -1,11 +1,20 @@
 use crate::snek::food::Food;
-use crate::snek::snake::Snake;
+use crate::snek::snake::{Snake, SnakeDirection};
 use rand::Rng;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) struct GameDimensions {
   pub width: u16,
   pub height: u16,
+}
+
+impl GameDimensions {
+  fn center(&self) -> GameCoordinate {
+    GameCoordinate {
+      x: self.width / 2,
+      y: self.height / 2,
+    }
+  }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -24,10 +33,17 @@ impl GameCoordinate {
   }
 }
 
+#[derive(Debug, Copy, Clone)]
+struct SnakeHead {
+  location: GameCoordinate,
+  direction: SnakeDirection,
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct Game {
   dimensions: GameDimensions,
   snek: Snake,
+  snek_head: SnakeHead,
   food: Vec<(Food, GameCoordinate)>,
 }
 
@@ -37,23 +53,63 @@ impl Game {
       .into_iter()
       .map(|food| (food, GameCoordinate::random(dimensions)))
       .collect();
+
+    let mut snake = Snake::new();
+    snake.grow(SnakeDirection::North);
+    snake.grow(SnakeDirection::North);
+    snake.grow(SnakeDirection::North);
+    snake.grow(SnakeDirection::East);
+    snake.grow(SnakeDirection::East);
+    snake.grow(SnakeDirection::East);
+
     Game {
       dimensions,
-      snek: Snake::new(),
+      snek: snake,
+      snek_head: SnakeHead {
+        location: dimensions.center(),
+        direction: SnakeDirection::North,
+      },
       food,
     }
   }
 
-  pub fn food(&self) -> &Vec<(Food, GameCoordinate)> {
-    &self.food
-  }
-
-  pub fn snake_length(&self) -> usize {
-    self.snek.length()
-  }
-
   pub fn dimensions(&self) -> GameDimensions {
     self.dimensions
+  }
+
+  pub fn food(&self) -> impl Iterator<Item = (Food, GameCoordinate)> + '_ {
+    self.food.iter().copied()
+  }
+
+  pub fn snake_bits(
+    &self,
+  ) -> (
+    GameCoordinate,
+    impl Iterator<Item = (SnakeDirection, GameCoordinate)> + '_,
+  ) {
+    let mut curr = self.snek_head.location;
+
+    (
+      self.snek_head.location,
+      self
+        .snek
+        .iter()
+        .map(move |dir| (dir, curr.updated_with_direction(dir))),
+    )
+  }
+}
+
+impl GameCoordinate {
+  fn updated_with_direction(&mut self, direction: SnakeDirection) -> Self {
+    use SnakeDirection::*;
+    match direction {
+      North => self.y += 1,
+      South => self.y -= 1,
+      East => self.x += 1,
+      West => self.x -= 1,
+    };
+
+    *self
   }
 }
 
@@ -68,8 +124,7 @@ mod tests {
 
     let game = Game::new(GameDimensions { width, height });
 
-    assert_eq!(game.food().len(), 3);
-    assert_eq!(game.snake_length(), 1);
+    assert_eq!(game.food().count(), 3);
     assert_eq!(game.dimensions(), GameDimensions { width, height });
   }
 }
