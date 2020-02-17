@@ -75,16 +75,6 @@ impl Terminal {
   pub fn game_space(&self) -> GameDimensions {
     self.terminal.size().map(|r| r.border_adjusted()).unwrap()
   }
-
-  fn adjusted_coordinate(
-    &self,
-    GameCoordinate { x, y }: GameCoordinate,
-  ) -> GameCoordinate {
-    GameCoordinate {
-      x: self.game_space_offset.x + x,
-      y: self.game_space_offset.y + y,
-    }
-  }
 }
 
 // MARK: - Sprite rendering
