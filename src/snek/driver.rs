@@ -36,9 +36,8 @@ impl Driver {
       let user_action = UserAction::from(key);
 
       if paused {
-        match user_action {
-          UserAction::PauseResume => paused = false,
-          _ => {}
+        if let UserAction::PauseResume = user_action {
+          paused = false
         }
       } else {
         match user_action {
