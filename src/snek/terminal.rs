@@ -109,8 +109,8 @@ impl Into<CharWidget> for SnakeDirection {
     match self {
       SnakeDirection::North => '^',
       SnakeDirection::South => 'v',
-      SnakeDirection::East => '<',
-      SnakeDirection::West => '>',
+      SnakeDirection::East => '>',
+      SnakeDirection::West => '<',
     }
     .into()
   }

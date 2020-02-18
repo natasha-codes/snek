@@ -76,10 +76,17 @@ impl Game {
 
     (
       self.snek_head.location,
-      self
-        .snek
-        .iter()
-        .map(move |dir| (dir, curr.update_with_direction(dir))),
+      self.snek.iter().map(move |dir| {
+        // Remember that (0, 0) is at the top-left corner
+        match dir {
+          SnakeDirection::North => curr.y += 1,
+          SnakeDirection::South => curr.y -= 1,
+          SnakeDirection::East => curr.x -= 1,
+          SnakeDirection::West => curr.x += 1,
+        }
+
+        (dir, curr)
+      }),
     )
   }
 
@@ -91,12 +98,12 @@ impl Game {
       | UserAction::MoveSouth
       | UserAction::MoveEast
       | UserAction::MoveWest => {
-        let new_snake_direction = SnakeDirection::try_from(user_action)
+        let move_direction = SnakeDirection::try_from(user_action)
           .expect("Failed to create SnakeDirection from UserAction");
 
-        if self.snek_head.direction != new_snake_direction.inverted() {
-          self.snek.advance(new_snake_direction);
-          self.snek_head.direction = new_snake_direction;
+        if self.snek_head.direction != move_direction.inverted() {
+          self.snek.advance(move_direction);
+          self.snek_head.update_for_move_in_direction(move_direction);
         }
       }
       UserAction::Quit | UserAction::PauseResume | UserAction::None => {}
@@ -135,17 +142,19 @@ impl GameCoordinate {
       y: rng.gen_range(0, height),
     }
   }
+}
 
-  fn update_with_direction(&mut self, direction: SnakeDirection) -> Self {
-    use SnakeDirection::*;
+impl SnakeHead {
+  fn update_for_move_in_direction(&mut self, direction: SnakeDirection) {
+    self.direction = direction;
+
+    // Remember that (0, 0) is at the top-left corner
     match direction {
-      North => self.y += 1,
-      South => self.y -= 1,
-      East => self.x += 1,
-      West => self.x -= 1,
-    };
-
-    *self
+      SnakeDirection::North => self.location.y -= 1,
+      SnakeDirection::South => self.location.y += 1,
+      SnakeDirection::East => self.location.x += 1,
+      SnakeDirection::West => self.location.x -= 1,
+    }
   }
 }
 
