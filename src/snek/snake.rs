@@ -40,6 +40,17 @@ impl Snake {
   }
 }
 
+impl SnakeDirection {
+  pub fn inverted(self) -> Self {
+    match self {
+      Self::North => Self::South,
+      Self::South => Self::North,
+      Self::East => Self::West,
+      Self::West => Self::East,
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::SnakeDirection::*;
@@ -84,5 +95,13 @@ mod tests {
     snek.advance(East);
     assert_eq!(snek.length(), 4);
     assert_eq!(snek.segments.front(), Some(&East));
+  }
+
+  #[test]
+  fn test_iter_snake() {
+    let directions = vec![North, East, North];
+    let snek = Snake::with_directions(&directions);
+
+    assert_eq!(directions, snek.iter().collect::<Vec<SnakeDirection>>());
   }
 }

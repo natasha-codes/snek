@@ -1,6 +1,8 @@
+use crate::snek::driver::UserAction;
 use crate::snek::food::Food;
 use crate::snek::snake::{Snake, SnakeDirection};
 use rand::Rng;
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) struct GameDimensions {
@@ -54,6 +56,8 @@ impl Game {
     }
   }
 
+  // MARK: - Getters
+
   pub fn dimensions(&self) -> GameDimensions {
     self.dimensions
   }
@@ -72,11 +76,52 @@ impl Game {
 
     (
       self.snek_head.location,
-      self
-        .snek
-        .iter()
-        .map(move |dir| (dir, curr.update_with_direction(dir))),
+      self.snek.iter().map(move |dir| {
+        // Remember that (0, 0) is at the top-left corner
+        match dir {
+          SnakeDirection::North => curr.y += 1,
+          SnakeDirection::South => curr.y -= 1,
+          SnakeDirection::East => curr.x -= 1,
+          SnakeDirection::West => curr.x += 1,
+        }
+
+        (dir, curr)
+      }),
     )
+  }
+
+  // MARK: - Actions
+
+  pub fn update_for_user_action(&mut self, user_action: UserAction) {
+    match user_action {
+      UserAction::MoveNorth
+      | UserAction::MoveSouth
+      | UserAction::MoveEast
+      | UserAction::MoveWest => {
+        let move_direction = SnakeDirection::try_from(user_action)
+          .expect("Failed to create SnakeDirection from UserAction");
+
+        if self.snek_head.direction != move_direction.inverted() {
+          self.snek.advance(move_direction);
+          self.snek_head.update_for_move_in_direction(move_direction);
+        }
+      }
+      UserAction::Quit | UserAction::PauseResume | UserAction::None => {}
+    };
+  }
+}
+
+impl TryFrom<UserAction> for SnakeDirection {
+  type Error = ();
+
+  fn try_from(user_action: UserAction) -> Result<Self, Self::Error> {
+    match user_action {
+      UserAction::MoveNorth => Ok(SnakeDirection::North),
+      UserAction::MoveSouth => Ok(SnakeDirection::South),
+      UserAction::MoveEast => Ok(SnakeDirection::East),
+      UserAction::MoveWest => Ok(SnakeDirection::West),
+      _ => Err(()),
+    }
   }
 }
 
@@ -97,17 +142,19 @@ impl GameCoordinate {
       y: rng.gen_range(0, height),
     }
   }
+}
 
-  fn update_with_direction(&mut self, direction: SnakeDirection) -> Self {
-    use SnakeDirection::*;
+impl SnakeHead {
+  fn update_for_move_in_direction(&mut self, direction: SnakeDirection) {
+    self.direction = direction;
+
+    // Remember that (0, 0) is at the top-left corner
     match direction {
-      North => self.y += 1,
-      South => self.y -= 1,
-      East => self.x += 1,
-      West => self.x -= 1,
-    };
-
-    *self
+      SnakeDirection::North => self.location.y -= 1,
+      SnakeDirection::South => self.location.y += 1,
+      SnakeDirection::East => self.location.x += 1,
+      SnakeDirection::West => self.location.x -= 1,
+    }
   }
 }
 
