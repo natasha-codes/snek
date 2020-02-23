@@ -1,6 +1,8 @@
 use crate::snek::game::Game;
 use crate::snek::terminal::Terminal;
-use crossbeam_channel::{bounded, TryRecvError, TrySendError};
+use crossbeam_channel::{
+  self as crossbeam, bounded, TryRecvError, TrySendError,
+};
 use std::{io, thread, time};
 use termion::event::Key;
 use termion::input::TermRead;
@@ -36,46 +38,17 @@ impl Driver {
   }
 
   pub fn drive(&mut self) -> Result<()> {
-    let mut keys = io::stdin().keys();
-
-    self.render()?;
-
-    // Listen for input
-
+    // Set up channels
     let (key_send, key_recv) = bounded(1);
+    let (tick_send, tick_recv) = bounded(1);
     let key_recv_game = key_recv.clone();
 
-    thread::spawn(move || {
-      while let Some(Ok(key)) = keys.next() {
-        // Remove previously-sent key, if still in the channel
-        match key_recv.try_recv() {
-          Ok(_) | Err(TryRecvError::Empty) => {}
-          Err(TryRecvError::Disconnected) => break,
-        }
-
-        // Send newly received key
-        match key_send.try_send(key) {
-          Ok(_) => {}
-          Err(TrySendError::Full(_)) => {
-            unreachable!("Should-be-empty channel was full")
-          }
-          Err(TrySendError::Disconnected(_)) => break,
-        }
-      }
-    });
-
-    // Manage the game-loop timer
-
-    let (tick_send, tick_recv) = bounded(1);
-
-    thread::spawn(move || {
-      while let Ok(_) = tick_send.send(()) {
-        let delay = time::Duration::from_millis(300);
-        thread::sleep(delay);
-      }
-    });
+    // Set up key listener and game loop timer
+    listen_for_keys(key_send, key_recv);
+    tick_with_ms_delay(300, tick_send);
 
     // Update game state
+    self.render()?;
 
     for _ in tick_recv.iter() {
       match key_recv_game.try_recv() {
@@ -127,6 +100,42 @@ impl Driver {
       .render(&self.game)
       .map_err(|err| format!("Failed to render game: {:?}", err))
   }
+}
+
+/// `send` and `recv` must be attached to the same channel.
+fn listen_for_keys(
+  key_send: crossbeam::Sender<Key>,
+  key_recv: crossbeam::Receiver<Key>,
+) {
+  let mut keys = io::stdin().keys();
+
+  thread::spawn(move || {
+    while let Some(Ok(key)) = keys.next() {
+      // Remove previously-sent key, if still in the channel
+      match key_recv.try_recv() {
+        Ok(_) | Err(TryRecvError::Empty) => {}
+        Err(TryRecvError::Disconnected) => break,
+      }
+
+      // Send newly received key
+      match key_send.try_send(key) {
+        Ok(_) => {}
+        Err(TrySendError::Full(_)) => {
+          unreachable!("Should-be-empty channel was full")
+        }
+        Err(TrySendError::Disconnected(_)) => break,
+      }
+    }
+  });
+}
+
+fn tick_with_ms_delay(ms: u64, tick_send: crossbeam::Sender<()>) {
+  thread::spawn(move || {
+    while let Ok(_) = tick_send.send(()) {
+      let delay = time::Duration::from_millis(ms);
+      thread::sleep(delay);
+    }
+  });
 }
 
 impl From<Key> for UserAction {
