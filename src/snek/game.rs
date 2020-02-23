@@ -102,12 +102,19 @@ impl Game {
           .expect("Failed to create SnakeDirection from UserAction");
 
         if self.snek_head.direction != move_direction.inverted() {
-          self.snek.advance(move_direction);
-          self.snek_head.update_for_move_in_direction(move_direction);
+          self.advance_snake_in_direction(move_direction);
         }
       }
-      UserAction::Quit | UserAction::PauseResume | UserAction::None => {}
+      UserAction::None => {
+        self.advance_snake_in_direction(self.snek_head.direction);
+      }
+      UserAction::Quit | UserAction::PauseResume => {}
     };
+  }
+
+  fn advance_snake_in_direction(&mut self, direction: SnakeDirection) {
+    self.snek.advance(direction);
+    self.snek_head.update_for_move_in_direction(direction);
   }
 }
 
