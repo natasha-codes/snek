@@ -27,8 +27,9 @@ pub(crate) struct Terminal {
 
 impl Terminal {
   pub fn new() -> Self {
-    let raw_stdout = std::io::stdout().into_raw_mode().unwrap();
-    let stdout = HideCursor::from(AlternateScreen::from(raw_stdout));
+    let stdout = std::io::stdout().into_raw_mode().unwrap();
+    let stdout = AlternateScreen::from(stdout);
+    let stdout = HideCursor::from(stdout);
     let backend = TermionBackend::new(stdout);
     let terminal = TuiTerminal::new(backend).unwrap();
     Terminal {

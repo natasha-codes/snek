@@ -42,7 +42,7 @@ impl Driver {
 
     // Listen for input
 
-    let (key_send, key_recv) = bounded(0);
+    let (key_send, key_recv) = bounded(1);
     let key_recv_game = key_recv.clone();
 
     thread::spawn(move || {
@@ -66,7 +66,7 @@ impl Driver {
 
     // Manage the game-loop timer
 
-    let (tick_send, tick_recv) = bounded(0);
+    let (tick_send, tick_recv) = bounded(1);
 
     thread::spawn(move || {
       while let Ok(_) = tick_send.send(()) {
@@ -79,8 +79,16 @@ impl Driver {
 
     for _ in tick_recv.iter() {
       match key_recv_game.try_recv() {
-        Ok(key) => self.respond_to_key(Some(key))?,
-        Err(TryRecvError::Empty) => self.respond_to_key(None)?,
+        Ok(key) => {
+          let user_action = UserAction::from(key);
+
+          if let UserAction::Quit = user_action {
+            break;
+          } else {
+            self.respond_to_action(user_action)?;
+          }
+        }
+        Err(TryRecvError::Empty) => self.respond_to_action(UserAction::None)?,
         Err(TryRecvError::Disconnected) => {
           return Err(String::from("Key channel disconnected"));
         }
@@ -90,16 +98,14 @@ impl Driver {
     Ok(())
   }
 
-  fn respond_to_key(&mut self, key: Option<Key>) -> Result<()> {
-    let user_action = UserAction::from(key);
-
+  fn respond_to_action(&mut self, user_action: UserAction) -> Result<()> {
     if self.paused {
       if let UserAction::PauseResume = user_action {
         self.paused = false
       }
     } else {
       match user_action {
-        UserAction::Quit => {}
+        UserAction::Quit => unreachable!("Quit action should be handled above"),
         UserAction::PauseResume => self.paused = true,
         UserAction::None
         | UserAction::MoveNorth
@@ -120,15 +126,6 @@ impl Driver {
       .term
       .render(&self.game)
       .map_err(|err| format!("Failed to render game: {:?}", err))
-  }
-}
-
-impl From<Option<Key>> for UserAction {
-  fn from(maybe_key: Option<Key>) -> Self {
-    match maybe_key {
-      Some(key) => Self::from(key),
-      None => Self::None,
-    }
   }
 }
 
