@@ -36,7 +36,6 @@ impl Driver {
   }
 
   pub fn play_with_config(config: Config) -> Result<(), ()> {
-    eprintln!("{:?}", config);
     Self::new().drive(config)
   }
 
