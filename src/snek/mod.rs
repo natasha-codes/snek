@@ -2,11 +2,14 @@
 #![allow(dead_code)] // TODO: @sashaweiss @nathanshelly remove this once MVP is working
 
 extern crate crossbeam_channel;
+extern crate clap;
 extern crate rand;
 extern crate tui;
 
-pub mod driver;
+mod driver;
 mod food;
 mod game;
 mod snake;
 mod terminal;
+
+pub use driver::{Driver, GameConfig};

@@ -8,6 +8,7 @@ use termion::event::Key;
 use termion::input::TermRead;
 
 pub struct Driver {
+  config: GameConfig,
   term: Terminal,
   game: Game,
   paused: bool,
@@ -31,6 +32,15 @@ pub(crate) enum Direction {
 }
 
 impl Driver {
+  pub fn play() -> Result<(), ()> {
+    Self::play_with_config(GameConfig::default())
+  }
+
+  pub fn play_with_config(config: GameConfig) -> Result<(), ()> {
+    eprintln!("{:?}", config);
+    Self::new(config).drive()
+  }
+
   pub fn new() -> Self {
     let term = Terminal::new();
     let game_space = term.game_space();
@@ -161,5 +171,15 @@ impl From<Key> for UserAction {
       Key::Esc | Key::Ctrl('c') => Self::Quit,
       _ => Self::None,
     }
+  }
+}
+
+#[derive(Debug)]
+pub struct GameConfig {
+  pub food_count: usize,
+}
+impl Default for GameConfig {
+  fn default() -> Self {
+    Self { food_count: 1 }
   }
 }
