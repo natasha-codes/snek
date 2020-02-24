@@ -1,6 +1,6 @@
+use crate::snek::driver::Direction;
 use crate::snek::food::Food;
 use crate::snek::game::{Game, GameCoordinate, GameDimensions};
-use crate::snek::snake::SnakeDirection;
 use std::io;
 use termion::cursor::HideCursor;
 use termion::raw::{IntoRawMode, RawTerminal};
@@ -105,13 +105,13 @@ impl Into<CharWidget> for Food {
   }
 }
 
-impl Into<CharWidget> for SnakeDirection {
+impl Into<CharWidget> for Direction {
   fn into(self) -> CharWidget {
     match self {
-      SnakeDirection::North => '^',
-      SnakeDirection::South => 'v',
-      SnakeDirection::East => '>',
-      SnakeDirection::West => '<',
+      Direction::North => '^',
+      Direction::South => 'v',
+      Direction::East => '>',
+      Direction::West => '<',
     }
     .into()
   }

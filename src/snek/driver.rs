@@ -16,13 +16,18 @@ pub struct Driver {
 pub type Result<T> = std::result::Result<T, String>;
 
 pub(crate) enum UserAction {
-  MoveNorth,
-  MoveSouth,
-  MoveEast,
-  MoveWest,
+  Move(Direction),
   Quit,
   PauseResume,
   None,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub(crate) enum Direction {
+  North,
+  South,
+  East,
+  West,
 }
 
 impl Driver {
@@ -45,7 +50,7 @@ impl Driver {
 
     // Set up key listener and game loop timer
     listen_for_keys(key_send, key_recv);
-    tick_with_ms_delay(300, tick_send);
+    tick_with_ms_delay(100, tick_send);
 
     // Update game state
     self.render()?;
@@ -80,11 +85,7 @@ impl Driver {
       match user_action {
         UserAction::Quit => unreachable!("Quit action should be handled above"),
         UserAction::PauseResume => self.paused = true,
-        UserAction::None
-        | UserAction::MoveNorth
-        | UserAction::MoveSouth
-        | UserAction::MoveEast
-        | UserAction::MoveWest => {
+        UserAction::None | UserAction::Move(_) => {
           self.game.update_for_user_action(user_action);
           self.render()?;
         }
@@ -138,13 +139,24 @@ fn tick_with_ms_delay(ms: u64, tick_send: crossbeam::Sender<()>) {
   });
 }
 
+impl Direction {
+  pub fn inverted(self) -> Self {
+    match self {
+      Self::North => Self::South,
+      Self::South => Self::North,
+      Self::East => Self::West,
+      Self::West => Self::East,
+    }
+  }
+}
+
 impl From<Key> for UserAction {
   fn from(key: Key) -> Self {
     match key {
-      Key::Char('w') | Key::Up => Self::MoveNorth,
-      Key::Char('s') | Key::Down => Self::MoveSouth,
-      Key::Char('d') | Key::Right => Self::MoveEast,
-      Key::Char('a') | Key::Left => Self::MoveWest,
+      Key::Char('w') | Key::Up => Self::Move(Direction::North),
+      Key::Char('s') | Key::Down => Self::Move(Direction::South),
+      Key::Char('d') | Key::Right => Self::Move(Direction::East),
+      Key::Char('a') | Key::Left => Self::Move(Direction::West),
       Key::Char(' ') => Self::PauseResume,
       Key::Esc | Key::Ctrl('c') => Self::Quit,
       _ => Self::None,

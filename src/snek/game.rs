@@ -1,8 +1,7 @@
-use crate::snek::driver::UserAction;
+use crate::snek::driver::{Direction, UserAction};
 use crate::snek::food::Food;
-use crate::snek::snake::{Snake, SnakeDirection};
+use crate::snek::snake::Snake;
 use rand::Rng;
-use std::convert::TryFrom;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) struct GameDimensions {
@@ -19,7 +18,7 @@ pub(crate) struct GameCoordinate {
 #[derive(Debug, Copy, Clone)]
 struct SnakeHead {
   location: GameCoordinate,
-  direction: SnakeDirection,
+  direction: Direction,
 }
 
 #[derive(Debug, Clone)]
@@ -38,19 +37,19 @@ impl Game {
       .collect();
 
     let mut snake = Snake::new();
-    snake.grow(SnakeDirection::North);
-    snake.grow(SnakeDirection::North);
-    snake.grow(SnakeDirection::North);
-    snake.grow(SnakeDirection::East);
-    snake.grow(SnakeDirection::East);
-    snake.grow(SnakeDirection::East);
+    snake.grow(Direction::North);
+    snake.grow(Direction::North);
+    snake.grow(Direction::North);
+    snake.grow(Direction::East);
+    snake.grow(Direction::East);
+    snake.grow(Direction::East);
 
     Game {
       dimensions,
       snek: snake,
       snek_head: SnakeHead {
         location: dimensions.center(),
-        direction: SnakeDirection::North,
+        direction: Direction::North,
       },
       food,
     }
@@ -70,7 +69,7 @@ impl Game {
     &self,
   ) -> (
     GameCoordinate,
-    impl Iterator<Item = (SnakeDirection, GameCoordinate)> + '_,
+    impl Iterator<Item = (Direction, GameCoordinate)> + '_,
   ) {
     let mut curr = self.snek_head.location;
 
@@ -79,10 +78,10 @@ impl Game {
       self.snek.iter().map(move |dir| {
         // Remember that (0, 0) is at the top-left corner
         match dir {
-          SnakeDirection::North => curr.y += 1,
-          SnakeDirection::South => curr.y -= 1,
-          SnakeDirection::East => curr.x -= 1,
-          SnakeDirection::West => curr.x += 1,
+          Direction::North => curr.y += 1,
+          Direction::South => curr.y -= 1,
+          Direction::East => curr.x -= 1,
+          Direction::West => curr.x += 1,
         }
 
         (dir, curr)
@@ -94,41 +93,25 @@ impl Game {
 
   pub fn update_for_user_action(&mut self, user_action: UserAction) {
     match user_action {
-      UserAction::MoveNorth
-      | UserAction::MoveSouth
-      | UserAction::MoveEast
-      | UserAction::MoveWest => {
-        let move_direction = SnakeDirection::try_from(user_action)
-          .expect("Failed to create SnakeDirection from UserAction");
-
-        if self.snek_head.direction != move_direction.inverted() {
-          self.advance_snake_in_direction(move_direction);
+      UserAction::None => self.advance_snake(),
+      UserAction::Move(move_direction) => {
+        if move_direction == self.snek_head.direction.inverted() {
+          self.advance_snake();
+        } else {
+          self.advance_snake_in_direction(move_direction)
         }
-      }
-      UserAction::None => {
-        self.advance_snake_in_direction(self.snek_head.direction);
       }
       UserAction::Quit | UserAction::PauseResume => {}
     };
   }
 
-  fn advance_snake_in_direction(&mut self, direction: SnakeDirection) {
+  fn advance_snake(&mut self) {
+    self.advance_snake_in_direction(self.snek_head.direction);
+  }
+
+  fn advance_snake_in_direction(&mut self, direction: Direction) {
     self.snek.advance(direction);
     self.snek_head.update_for_move_in_direction(direction);
-  }
-}
-
-impl TryFrom<UserAction> for SnakeDirection {
-  type Error = ();
-
-  fn try_from(user_action: UserAction) -> Result<Self, Self::Error> {
-    match user_action {
-      UserAction::MoveNorth => Ok(SnakeDirection::North),
-      UserAction::MoveSouth => Ok(SnakeDirection::South),
-      UserAction::MoveEast => Ok(SnakeDirection::East),
-      UserAction::MoveWest => Ok(SnakeDirection::West),
-      _ => Err(()),
-    }
   }
 }
 
@@ -152,15 +135,15 @@ impl GameCoordinate {
 }
 
 impl SnakeHead {
-  fn update_for_move_in_direction(&mut self, direction: SnakeDirection) {
+  fn update_for_move_in_direction(&mut self, direction: Direction) {
     self.direction = direction;
 
     // Remember that (0, 0) is at the top-left corner
     match direction {
-      SnakeDirection::North => self.location.y -= 1,
-      SnakeDirection::South => self.location.y += 1,
-      SnakeDirection::East => self.location.x += 1,
-      SnakeDirection::West => self.location.x -= 1,
+      Direction::North => self.location.y -= 1,
+      Direction::South => self.location.y += 1,
+      Direction::East => self.location.x += 1,
+      Direction::West => self.location.x -= 1,
     }
   }
 }

@@ -1,18 +1,11 @@
+use crate::snek::driver::Direction;
 use std::collections::VecDeque;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub(crate) enum SnakeDirection {
-  North,
-  South,
-  East,
-  West,
-}
 
 #[derive(Debug, Clone)]
 pub(crate) struct Snake {
   // The direction of a body segment is "how to get to the previous body segment/head from me".
   // E.g., if the first segment is `North`, this implies the head is north of the first segment.
-  segments: VecDeque<SnakeDirection>,
+  segments: VecDeque<Direction>,
 }
 
 impl Snake {
@@ -22,16 +15,16 @@ impl Snake {
     }
   }
 
-  pub fn iter(&self) -> impl Iterator<Item = SnakeDirection> + '_ {
+  pub fn iter(&self) -> impl Iterator<Item = Direction> + '_ {
     self.segments.iter().copied()
   }
 
-  pub fn advance(&mut self, direction: SnakeDirection) {
+  pub fn advance(&mut self, direction: Direction) {
     self.grow(direction);
     self.drop_tail();
   }
 
-  pub fn grow(&mut self, direction: SnakeDirection) {
+  pub fn grow(&mut self, direction: Direction) {
     self.segments.push_front(direction);
   }
 
@@ -40,24 +33,13 @@ impl Snake {
   }
 }
 
-impl SnakeDirection {
-  pub fn inverted(self) -> Self {
-    match self {
-      Self::North => Self::South,
-      Self::South => Self::North,
-      Self::East => Self::West,
-      Self::West => Self::East,
-    }
-  }
-}
-
 #[cfg(test)]
 mod tests {
-  use super::SnakeDirection::*;
+  use super::Direction::*;
   use super::*;
 
   impl Snake {
-    fn with_directions(directions: &[SnakeDirection]) -> Snake {
+    fn with_directions(directions: &[Direction]) -> Snake {
       let mut snek = Snake::new();
 
       for direction in directions {
@@ -102,6 +84,6 @@ mod tests {
     let directions = vec![North, East, North];
     let snek = Snake::with_directions(&directions);
 
-    assert_eq!(directions, snek.iter().collect::<Vec<SnakeDirection>>());
+    assert_eq!(directions, snek.iter().collect::<Vec<Direction>>());
   }
 }
