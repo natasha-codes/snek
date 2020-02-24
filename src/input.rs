@@ -1,6 +1,6 @@
 use clap::Clap;
 
-use crate::snek::GameConfig;
+use crate::snek::Config;
 
 /// Play the classic game snake! 🐍
 #[derive(Clap, Debug)]
@@ -11,12 +11,12 @@ pub struct Input {
   food_count: Option<usize>,
 }
 
-impl Into<GameConfig> for Input {
-  fn into(self) -> GameConfig {
-    let mut builder = GameConfig::default();
+impl Into<Config> for Input {
+  fn into(self) -> Config {
+    let mut builder = Config::default();
 
     if let Some(food_count) = self.food_count {
-      builder.food_count = food_count
+      builder.game_config.food_count = food_count
     }
 
     builder

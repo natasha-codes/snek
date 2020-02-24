@@ -12,4 +12,4 @@ mod game;
 mod snake;
 mod terminal;
 
-pub use driver::{Driver, GameConfig};
+pub use driver::{Config, Driver};

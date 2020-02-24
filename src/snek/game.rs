@@ -1,4 +1,4 @@
-use crate::snek::driver::{Direction, UserAction};
+use crate::snek::driver::{GameConfig, Direction, UserAction};
 use crate::snek::food::Food;
 use crate::snek::snake::Snake;
 use rand::Rng;
@@ -30,8 +30,8 @@ pub(crate) struct Game {
 }
 
 impl Game {
-  pub fn new(dimensions: GameDimensions) -> Self {
-    let food = vec![Food::Cake, Food::Cherry, Food::Mouse]
+  pub fn new(config: GameConfig, dimensions: GameDimensions) -> Self {
+    let food = vec![rand::random(); config.food_count]
       .into_iter()
       .map(|food| (food, GameCoordinate::random(dimensions)))
       .collect();
@@ -157,9 +157,10 @@ mod tests {
     let width = 10;
     let height = 10;
 
-    let game = Game::new(GameDimensions { width, height });
+    let game =
+      Game::new(GameConfig::default(), GameDimensions { width, height });
 
-    assert_eq!(game.food().count(), 3);
+    assert_eq!(game.food().count(), 1);
     assert_eq!(game.dimensions(), GameDimensions { width, height });
   }
 }
