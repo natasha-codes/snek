@@ -1,56 +1,74 @@
 use crate::snek::game::Game;
 use crate::snek::terminal::Terminal;
-use std::io;
+use crossbeam_channel::{
+  self as crossbeam, bounded, TryRecvError, TrySendError,
+};
+use std::{io, thread, time};
 use termion::event::Key;
 use termion::input::TermRead;
 
 pub struct Driver {
   term: Terminal,
+  game: Game,
+  paused: bool,
 }
 
+pub type Result<T> = std::result::Result<T, String>;
+
 pub(crate) enum UserAction {
-  MoveNorth,
-  MoveSouth,
-  MoveEast,
-  MoveWest,
+  Move(Direction),
   Quit,
   PauseResume,
   None,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub(crate) enum Direction {
+  North,
+  South,
+  East,
+  West,
+}
+
 impl Driver {
   pub fn new() -> Self {
+    let term = Terminal::new();
+    let game_space = term.game_space();
+
     Driver {
-      term: Terminal::new(),
+      term,
+      paused: false,
+      game: Game::new(game_space),
     }
   }
 
-  pub fn drive(&mut self) -> Result<(), ()> {
-    let mut keys = io::stdin().keys();
-    let mut game = Game::new(self.term.game_space());
-    let mut paused = false;
+  pub fn drive(&mut self) -> Result<()> {
+    // Set up channels
+    let (key_send, key_recv) = bounded(1);
+    let (tick_send, tick_recv) = bounded(1);
+    let key_recv_game = key_recv.clone();
 
-    self.render(&game)?;
+    // Set up key listener and game loop timer
+    listen_for_keys(key_send, key_recv);
+    tick_with_ms_delay(100, tick_send);
 
-    while let Some(Ok(key)) = keys.next() {
-      let user_action = UserAction::from(key);
+    // Update game state
+    self.render()?;
 
-      if paused {
-        if let UserAction::PauseResume = user_action {
-          paused = false
-        }
-      } else {
-        match user_action {
-          UserAction::None => {}
-          UserAction::Quit => break,
-          UserAction::PauseResume => paused = true,
-          UserAction::MoveNorth
-          | UserAction::MoveSouth
-          | UserAction::MoveEast
-          | UserAction::MoveWest => {
-            game.update_for_user_action(user_action);
-            self.render(&game)?;
+    for _ in tick_recv.iter() {
+      match key_recv_game.try_recv() {
+        Ok(key) => {
+          let user_action = UserAction::from(key);
+
+          if let UserAction::Quit = user_action {
+            break;
+          } else {
+            self.respond_to_action(user_action)?;
           }
+        }
+        Err(TryRecvError::Empty) => self.respond_to_action(UserAction::None)?,
+        Err(TryRecvError::Disconnected) => {
+          return Err(String::from("Key channel disconnected"));
         }
       }
     }
@@ -58,21 +76,87 @@ impl Driver {
     Ok(())
   }
 
-  fn render(&mut self, game: &Game) -> Result<(), ()> {
+  fn respond_to_action(&mut self, user_action: UserAction) -> Result<()> {
+    if self.paused {
+      if let UserAction::PauseResume = user_action {
+        self.paused = false
+      }
+    } else {
+      match user_action {
+        UserAction::Quit => unreachable!("Quit action should be handled above"),
+        UserAction::PauseResume => self.paused = true,
+        UserAction::None | UserAction::Move(_) => {
+          self.game.update_for_user_action(user_action);
+          self.render()?;
+        }
+      }
+    }
+
+    Ok(())
+  }
+
+  fn render(&mut self) -> Result<()> {
     self
       .term
-      .render(game)
-      .map_err(|err| eprintln!("Failed to render game: {:?}", err))
+      .render(&self.game)
+      .map_err(|err| format!("Failed to render game: {:?}", err))
+  }
+}
+
+/// `send` and `recv` must be attached to the same channel.
+fn listen_for_keys(
+  key_send: crossbeam::Sender<Key>,
+  key_recv: crossbeam::Receiver<Key>,
+) {
+  let mut keys = io::stdin().keys();
+
+  thread::spawn(move || {
+    while let Some(Ok(key)) = keys.next() {
+      // Remove previously-sent key, if still in the channel
+      match key_recv.try_recv() {
+        Ok(_) | Err(TryRecvError::Empty) => {}
+        Err(TryRecvError::Disconnected) => break,
+      }
+
+      // Send newly received key
+      match key_send.try_send(key) {
+        Ok(_) => {}
+        Err(TrySendError::Full(_)) => {
+          unreachable!("Should-be-empty channel was full")
+        }
+        Err(TrySendError::Disconnected(_)) => break,
+      }
+    }
+  });
+}
+
+fn tick_with_ms_delay(ms: u64, tick_send: crossbeam::Sender<()>) {
+  thread::spawn(move || {
+    while let Ok(_) = tick_send.send(()) {
+      let delay = time::Duration::from_millis(ms);
+      thread::sleep(delay);
+    }
+  });
+}
+
+impl Direction {
+  pub fn inverted(self) -> Self {
+    match self {
+      Self::North => Self::South,
+      Self::South => Self::North,
+      Self::East => Self::West,
+      Self::West => Self::East,
+    }
   }
 }
 
 impl From<Key> for UserAction {
   fn from(key: Key) -> Self {
     match key {
-      Key::Char('w') | Key::Up => Self::MoveNorth,
-      Key::Char('s') | Key::Down => Self::MoveSouth,
-      Key::Char('d') | Key::Right => Self::MoveEast,
-      Key::Char('a') | Key::Left => Self::MoveWest,
+      Key::Char('w') | Key::Up => Self::Move(Direction::North),
+      Key::Char('s') | Key::Down => Self::Move(Direction::South),
+      Key::Char('d') | Key::Right => Self::Move(Direction::East),
+      Key::Char('a') | Key::Left => Self::Move(Direction::West),
       Key::Char(' ') => Self::PauseResume,
       Key::Esc | Key::Ctrl('c') => Self::Quit,
       _ => Self::None,
