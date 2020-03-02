@@ -1,5 +1,6 @@
-use crate::snek::driver::Direction;
 use std::collections::VecDeque;
+
+use crate::driver::Direction;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Snake {

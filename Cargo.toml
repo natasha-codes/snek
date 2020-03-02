@@ -10,3 +10,11 @@ termion = "1.5"
 rand = "0.7"
 crossbeam-channel = "0.4"
 clap = { git = "https://github.com/clap-rs/clap/" }
+
+[lib]
+name = "libsnek"
+path = "src/lib.rs"
+
+[[bin]]
+name = "snek"
+path = "src/bin/main.rs"

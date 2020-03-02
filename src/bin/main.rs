@@ -1,6 +1,12 @@
 use clap::Clap;
 
-use crate::snek::Config;
+use libsnek::{Config, Driver};
+
+fn main() {
+  Driver::play_with_config(Input::parse().into())
+    .map_err(|err| eprintln!("Driver returned with an error: {:?}", err))
+    .unwrap();
+}
 
 /// Play the classic game snake! 🐍
 #[derive(Clap, Debug)]
