@@ -1,6 +1,3 @@
-use crate::snek::driver::Direction;
-use crate::snek::food::Food;
-use crate::snek::game::{Game, GameCoordinate, GameDimensions};
 use std::io;
 use termion::cursor::HideCursor;
 use termion::raw::{IntoRawMode, RawTerminal};
@@ -10,6 +7,10 @@ use tui::buffer::Buffer;
 use tui::layout::Rect;
 use tui::terminal::{Frame, Terminal as TuiTerminal};
 use tui::widgets::{Block, Borders, Paragraph, Text, Widget};
+
+use crate::driver::Direction;
+use crate::food::Food;
+use crate::game::{Game, GameCoordinate, GameDimensions};
 
 #[derive(Debug, Clone, Copy)]
 struct TerminalOffset {

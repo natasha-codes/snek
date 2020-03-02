@@ -1,7 +1,8 @@
-use crate::snek::driver::{Direction, GameConfig, UserAction};
-use crate::snek::food::Food;
-use crate::snek::snake::Snake;
 use rand::Rng;
+
+use crate::driver::{Direction, GameConfig, UserAction};
+use crate::food::Food;
+use crate::snake::Snake;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) struct GameDimensions {

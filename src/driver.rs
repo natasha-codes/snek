@@ -1,11 +1,12 @@
-use crate::snek::game::Game;
-use crate::snek::terminal::Terminal;
 use crossbeam_channel::{
   self as crossbeam, bounded, TryRecvError, TrySendError,
 };
 use std::{io, thread, time};
 use termion::event::Key;
 use termion::input::TermRead;
+
+use crate::game::Game;
+use crate::terminal::Terminal;
 
 pub struct Driver {
   term: Terminal,
