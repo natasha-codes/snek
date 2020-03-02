@@ -31,22 +31,22 @@ pub(crate) enum Direction {
 }
 
 impl Driver {
-  pub fn play() -> Result<(), ()> {
+  pub fn play() -> Result<()> {
     Self::play_with_config(Config::default())
   }
 
-  pub fn play_with_config(config: Config) -> Result<(), ()> {
-    Self::new().drive(config)
+  pub fn play_with_config(config: Config) -> Result<()> {
+    Self::new(config).drive()
   }
 
-  pub fn new() -> Self {
+  pub fn new(config: Config) -> Self {
     let term = Terminal::new();
     let game_space = term.game_space();
 
     Driver {
       term,
       paused: false,
-      game: Game::new(game_space),
+      game: Game::new(config.game_config, game_space),
     }
   }
 

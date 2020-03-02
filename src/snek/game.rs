@@ -1,4 +1,4 @@
-use crate::snek::driver::{GameConfig, Direction, UserAction};
+use crate::snek::driver::{Direction, GameConfig, UserAction};
 use crate::snek::food::Food;
 use crate::snek::snake::Snake;
 use rand::Rng;
