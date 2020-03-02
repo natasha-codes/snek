@@ -176,6 +176,7 @@ impl From<Key> for UserAction {
 pub struct GameConfig {
   pub food_count: usize,
 }
+
 impl Default for GameConfig {
   fn default() -> Self {
     Self { food_count: 1 }
@@ -186,6 +187,7 @@ impl Default for GameConfig {
 pub struct Config {
   pub game_config: GameConfig,
 }
+
 impl Default for Config {
   fn default() -> Self {
     Self {
