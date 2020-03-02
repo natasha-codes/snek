@@ -30,6 +30,16 @@ pub(crate) enum Direction {
   West,
 }
 
+#[derive(Debug)]
+pub struct GameConfig {
+  pub food_count: usize,
+}
+
+#[derive(Debug)]
+pub struct Config {
+  pub game_config: GameConfig,
+}
+
 impl Driver {
   pub fn play() -> Result<()> {
     Self::play_with_config(Config::default())
@@ -172,20 +182,10 @@ impl From<Key> for UserAction {
   }
 }
 
-#[derive(Debug)]
-pub struct GameConfig {
-  pub food_count: usize,
-}
-
 impl Default for GameConfig {
   fn default() -> Self {
     Self { food_count: 1 }
   }
-}
-
-#[derive(Debug)]
-pub struct Config {
-  pub game_config: GameConfig,
 }
 
 impl Default for Config {
