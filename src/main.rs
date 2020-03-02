@@ -1,9 +1,13 @@
+mod input;
 mod snek;
 
-fn main() {
-  let mut d = snek::driver::Driver::new();
+use clap::Clap;
 
-  d.drive()
+use crate::snek::Driver;
+use input::Input;
+
+fn main() {
+  Driver::play_with_config(Input::parse().into())
     .map_err(|err| eprintln!("Driver returned with an error: {:?}", err))
     .unwrap();
 }

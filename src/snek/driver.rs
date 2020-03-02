@@ -30,15 +30,33 @@ pub(crate) enum Direction {
   West,
 }
 
+#[derive(Debug)]
+pub struct GameConfig {
+  pub food_count: usize,
+}
+
+#[derive(Debug)]
+pub struct Config {
+  pub game_config: GameConfig,
+}
+
 impl Driver {
-  pub fn new() -> Self {
+  pub fn play() -> Result<()> {
+    Self::play_with_config(Config::default())
+  }
+
+  pub fn play_with_config(config: Config) -> Result<()> {
+    Self::new(config).drive()
+  }
+
+  pub fn new(config: Config) -> Self {
     let term = Terminal::new();
     let game_space = term.game_space();
 
     Driver {
       term,
       paused: false,
-      game: Game::new(game_space),
+      game: Game::new(config.game_config, game_space),
     }
   }
 
@@ -160,6 +178,20 @@ impl From<Key> for UserAction {
       Key::Char(' ') => Self::PauseResume,
       Key::Esc | Key::Ctrl('c') => Self::Quit,
       _ => Self::None,
+    }
+  }
+}
+
+impl Default for GameConfig {
+  fn default() -> Self {
+    Self { food_count: 1 }
+  }
+}
+
+impl Default for Config {
+  fn default() -> Self {
+    Self {
+      game_config: GameConfig::default(),
     }
   }
 }
