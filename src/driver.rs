@@ -1,6 +1,4 @@
-use crossbeam_channel::{
-  self as crossbeam, bounded, TryRecvError, TrySendError,
-};
+use crossbeam_channel::{self as crossbeam};
 use std::{io, thread, time};
 use termion::event::Key;
 use termion::input::TermRead;
@@ -16,6 +14,7 @@ pub struct Driver {
 
 pub type Result<T> = std::result::Result<T, String>;
 
+#[derive(Debug)]
 pub(crate) enum UserAction {
   Move(Direction),
   Quit,
@@ -61,21 +60,18 @@ impl Driver {
     }
   }
 
-  pub fn drive(&mut self) -> Result<()> {
-    // Set up channels
-    let (key_send, key_recv) = bounded(1);
-    let (tick_send, tick_recv) = bounded(1);
-    let key_recv_game = key_recv.clone();
-
+  fn drive(&mut self) -> Result<()> {
     // Set up key listener and game loop timer
-    listen_for_keys(key_send, key_recv);
-    tick_with_ms_delay(100, tick_send);
+    let (_, key_recv) = Driver::listen_for_keys();
+    let (_, tick_recv) = Driver::tick_with_ms_delay(100);
 
-    // Update game state
+    // Render initial game state
     self.render()?;
 
+    // Check for a keypress, once per tick
     for _ in tick_recv.iter() {
-      match key_recv_game.try_recv() {
+      match key_recv.try_recv() {
+        // A key was pressed
         Ok(key) => {
           let user_action = UserAction::from(key);
 
@@ -85,8 +81,12 @@ impl Driver {
             self.respond_to_action(user_action)?;
           }
         }
-        Err(TryRecvError::Empty) => self.respond_to_action(UserAction::None)?,
-        Err(TryRecvError::Disconnected) => {
+        // No key was pressed
+        Err(crossbeam::TryRecvError::Empty) => {
+          self.respond_to_action(UserAction::None)?
+        }
+        // The keypress channel disconnected - this is bad
+        Err(crossbeam::TryRecvError::Disconnected) => {
           return Err(String::from("Key channel disconnected"));
         }
       }
@@ -120,42 +120,55 @@ impl Driver {
       .render(&self.game)
       .map_err(|err| format!("Failed to render game: {:?}", err))
   }
-}
 
-/// `send` and `recv` must be attached to the same channel.
-fn listen_for_keys(
-  key_send: crossbeam::Sender<Key>,
-  key_recv: crossbeam::Receiver<Key>,
-) {
-  let mut keys = io::stdin().keys();
+  /// Spawn a thread to listen for keypresses on `stdin`.
+  ///
+  /// The returned receiver will only ever hold at most one keypress. If a
+  /// keypress occurs while a previously-pressed key is still waiting in
+  /// the channel, we will remove it and replace it with the new keypress.
+  fn listen_for_keys() -> (thread::JoinHandle<()>, crossbeam::Receiver<Key>) {
+    let (key_send, key_recv) = crossbeam::bounded(1);
+    let key_recv_ret = key_recv.clone();
 
-  thread::spawn(move || {
-    while let Some(Ok(key)) = keys.next() {
-      // Remove previously-sent key, if still in the channel
-      match key_recv.try_recv() {
-        Ok(_) | Err(TryRecvError::Empty) => {}
-        Err(TryRecvError::Disconnected) => break,
-      }
+    let join_handle = thread::spawn(move || {
+      let mut keys = io::stdin().keys();
 
-      // Send newly received key
-      match key_send.try_send(key) {
-        Ok(_) => {}
-        Err(TrySendError::Full(_)) => {
-          unreachable!("Should-be-empty channel was full")
+      while let Some(Ok(key)) = keys.next() {
+        // Remove previously-sent key, if still in the channel
+        match key_recv.try_recv() {
+          Ok(_) | Err(crossbeam::TryRecvError::Empty) => {}
+          Err(crossbeam::TryRecvError::Disconnected) => break,
         }
-        Err(TrySendError::Disconnected(_)) => break,
-      }
-    }
-  });
-}
 
-fn tick_with_ms_delay(ms: u64, tick_send: crossbeam::Sender<()>) {
-  thread::spawn(move || {
-    while let Ok(_) = tick_send.send(()) {
-      let delay = time::Duration::from_millis(ms);
-      thread::sleep(delay);
-    }
-  });
+        // Send newly received key
+        match key_send.try_send(key) {
+          Ok(_) => {}
+          Err(crossbeam::TrySendError::Full(_)) => {
+            unreachable!("Should-be-empty channel was full")
+          }
+          Err(crossbeam::TrySendError::Disconnected(_)) => break,
+        }
+      }
+    });
+
+    (join_handle, key_recv_ret)
+  }
+
+  /// Spawn a thread to send a tick every `ms` milliseconds.
+  fn tick_with_ms_delay(
+    ms: u64,
+  ) -> (thread::JoinHandle<()>, crossbeam::Receiver<()>) {
+    let (tick_send, tick_recv) = crossbeam::bounded(1);
+
+    let join_handle = thread::spawn(move || {
+      while let Ok(_) = tick_send.send(()) {
+        let delay = time::Duration::from_millis(ms);
+        thread::sleep(delay);
+      }
+    });
+
+    (join_handle, tick_recv)
+  }
 }
 
 impl Direction {
