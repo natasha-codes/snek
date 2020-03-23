@@ -10,7 +10,7 @@ pub(crate) struct GameDimensions {
   pub height: u16,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub(crate) struct GameCoordinate {
   pub x: u16,
   pub y: u16,
@@ -112,6 +112,15 @@ impl Game {
 
   fn advance_snake_in_direction(&mut self, direction: Direction) {
     self.snek.advance(direction);
+
+    if self.food.iter().any(|(_, coordinate)| *coordinate == self.snek_head.location) {
+        panic!()
+    }
+    let (_, mut tail) = self.snake_bits();
+    if tail.any(|(_, coordinate)| coordinate == self.snek_head.location) {
+        panic!()
+    }
+
     self.snek_head.update_for_move_in_direction(direction);
   }
 }
